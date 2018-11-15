@@ -22,6 +22,7 @@ app.set('views', './view');
 const rootRouter = require('./routes/root');
 const customersRouter = require('./routes/api/customers');
 const genresRouter = require('./routes/api/genres');
+const moviesRouter = require('./routes/api/movies');
 
 // Middlewares
 app.use(express.json());
@@ -49,6 +50,7 @@ mongoose
 app.use('/', rootRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/genres', genresRouter);
+app.use('/api/movies', moviesRouter);
 
 // Initialize listen to port
 const port = process.env.PORT || 5000;
