@@ -1,0 +1,7 @@
+{
+  "name": "Movie shop",
+  "mail": {
+    "host": "Mail Server Prod"
+  },
+  "mongoURL": "mongodb://localhost/MovieShop"
+}
