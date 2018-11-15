@@ -48,7 +48,7 @@ mongoose
 app.use('/', rootRouter);
 app.use('/api/customers', customersRouter);
 
-// Initialize listen to port (5000 default)
+// Initialize listen to port
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   startupDebugger(`Server running on port ${port}`);
