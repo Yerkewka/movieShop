@@ -21,6 +21,7 @@ app.set('views', './view');
 // Routers
 const rootRouter = require('./routes/root');
 const customersRouter = require('./routes/api/customers');
+const genresRouter = require('./routes/api/genres');
 
 // Middlewares
 app.use(express.json());
@@ -47,6 +48,7 @@ mongoose
 // App routes middlewares
 app.use('/', rootRouter);
 app.use('/api/customers', customersRouter);
+app.use('/api/genres', genresRouter);
 
 // Initialize listen to port
 const port = process.env.PORT || 5000;

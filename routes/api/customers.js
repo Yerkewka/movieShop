@@ -61,9 +61,10 @@ router.post('/', (req, res) => {
   customer
     .save()
     .then(customer => res.json(customer))
-    .catch(err =>
+    .catch(err => {
+      console.error("Error while saving: ", err);
       res.status(500).json({ message: 'Ошибка при сохранении данных' })
-    );
+    });
 });
 
 // @url    PUT /api/customers/:id
@@ -92,9 +93,10 @@ router.put('/:id', (req, res) => {
     customer
       .save()
       .then(customer => res.json(customer))
-      .catch(err =>
+      .catch(err => {
+        console.error("Error while saving: ", err);      
         res.status(500).json({ message: 'Ошибка при сохранении данных' })
-      );
+      });
   });
 });
 
@@ -108,9 +110,10 @@ router.delete('/:id', (req, res) => {
 
   Customer.findByIdAndRemove({ _id: req.params.id })
     .then(customer => res.json(customer))
-    .catch(err =>
+    .catch(err => {
+      console.error("Error while deleting: ", err);
       res.status(500).json({ message: 'Не удалось удалить заказчика' })
-    );
+    });
 });
 
 module.exports = router;
