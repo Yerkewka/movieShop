@@ -23,6 +23,7 @@ const rootRouter = require('./routes/root');
 const customersRouter = require('./routes/api/customers');
 const genresRouter = require('./routes/api/genres');
 const moviesRouter = require('./routes/api/movies');
+const rentalsRouter = require('./routes/api/rentals');
 
 // Middlewares
 app.use(express.json());
@@ -51,6 +52,7 @@ app.use('/', rootRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/genres', genresRouter);
 app.use('/api/movies', moviesRouter);
+app.use('/api/rentals', rentalsRouter);
 
 // Initialize listen to port
 const port = process.env.PORT || 5000;
