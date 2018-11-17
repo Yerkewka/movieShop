@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../../middlewares/auth');
+const admin = require('../../middlewares/admin');
 
 // MongoDB model
 const { Movie } = require('../../models/Movies');
@@ -12,7 +14,7 @@ const validateMovieInput = require('../../validation/movie');
 // @url   GET /api/movies
 // @desc  Get all movies
 // @type  Public
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
   Movie.find()
     .then(movies => {
       if (!movies || isEmpty(movies)) {
@@ -20,18 +22,13 @@ router.get('/', (req, res) => {
       }
       res.json(movies);
     })
-    .catch(err => {
-      console.error('Error while searching: '.err);
-      res.status(500).json({
-        message: 'Внутренняя серверная ошибка. Произошла ошибка при пойске.'
-      });
-    });
+    .catch(err => next(err));
 });
 
 // @url   GET /api/movies/:id
 // @desc  Get movie by id
 // @type  Public
-router.get('/:id', (req, res) => {
+router.get('/:id', (req, res, next) => {
   const id = req.params.id;
   if (!isObjectId(id)) {
     return res.status(400).json({ message: 'Неверный id фильма' });
@@ -45,18 +42,13 @@ router.get('/:id', (req, res) => {
 
       res.json(movie);
     })
-    .catch(err => {
-      console.error('Error while searching', err);
-      res.status(500).json({
-        message: 'Внутренняя ошибка сервера. Произошла ошибка при пойске'
-      });
-    });
+    .catch(err => next(err));
 });
 
 // @url   POST /api/movies
 // @desc  Create movie
 // @type  Private
-router.post('/', (req, res) => {
+router.post('/', auth, (req, res, next) => {
   const { errors, isValid } = validateMovieInput(req.body);
 
   if (!isValid) {
@@ -82,25 +74,15 @@ router.post('/', (req, res) => {
       newMovie
         .save()
         .then(movie => res.json(movie))
-        .catch(err => {
-          console.error('Error while saving: ', err);
-          res
-            .status(500)
-            .json({ message: 'Внутренняя ошибка сервера. Ошибка сохранения' });
-        });
+        .catch(err => next(err));
     })
-    .catch(err => {
-      console.error('Error while searching', err);
-      res.status(500).json({
-        message: 'Внутренняя ошибка сервера. Произошла ошибка при пойске'
-      });
-    });
+    .catch(err => next(err));
 });
 
 // @url   PUT /api/movies
 // @desc  Update movie
 // @type  Private
-router.put('/:id', (req, res) => {
+router.put('/:id', auth, (req, res, next) => {
   const id = req.params.id;
   if (!isObjectId(id)) {
     return res.status(400).json({ message: 'Неверный id фильма' });
@@ -117,44 +99,36 @@ router.put('/:id', (req, res) => {
         return res.status(404).json({ message: 'Жанр с таким id не найден' });
       }
 
-      Movie.findById(id).then(movie => {
-        if (!movie) {
-          return res
-            .status(404)
-            .json({ message: 'Фильм с таким id не найден' });
-        }
+      Movie.findById(id)
+        .then(movie => {
+          if (!movie) {
+            return res
+              .status(404)
+              .json({ message: 'Фильм с таким id не найден' });
+          }
 
-        movie.title = req.body.title;
-        movie.genre = {
-          _id: genre._id,
-          name: genre.name
-        };
-        movie.numberInStock = parseInt(req.body.numberInStock);
-        movie.dailyRentalRate = parseInt(req.body.dailyRentalRate);
+          movie.title = req.body.title;
+          movie.genre = {
+            _id: genre._id,
+            name: genre.name
+          };
+          movie.numberInStock = parseInt(req.body.numberInStock);
+          movie.dailyRentalRate = parseInt(req.body.dailyRentalRate);
 
-        movie
-          .save()
-          .then(movie => res.json(movie))
-          .catch(err => {
-            console.error('Error while saving: ', err);
-            res.status(500).json({
-              message: 'Внутренняя ошибка сервера. Ошибка сохранения'
-            });
-          });
-      });
+          movie
+            .save()
+            .then(movie => res.json(movie))
+            .catch(err => next(err));
+        })
+        .catch(err => next(err));
     })
-    .catch(err => {
-      console.error('Error while searching', err);
-      res.status(500).json({
-        message: 'Внутренняя ошибка сервера. Произошла ошибка при пойске'
-      });
-    });
+    .catch(err => next(err));
 });
 
 // @url   DELETE /api/movies
 // @desc  Delete movie
 // @type  Private
-router.delete('/:id', (req, res) => {
+router.delete('/:id', [auth, admin], (req, res, next) => {
   const id = req.params.id;
 
   if (!isObjectId(id)) {
@@ -163,12 +137,7 @@ router.delete('/:id', (req, res) => {
 
   Movie.findByIdAndRemove(id)
     .then(movie => res.json(movie))
-    .catch(err => {
-      console.error('Error while deleting: ', err);
-      res
-        .status(500)
-        .json({ message: 'Внутренняя ошибка сервера. Ошибка удаления записи' });
-    });
+    .catch(err => next(err));
 });
 
 module.exports = router;

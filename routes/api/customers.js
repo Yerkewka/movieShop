@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../../middlewares/auth');
+const admin = require('../../middlewares/admin');
 
 // MongoDB model
 const { Customer } = require('../../models/Customers');
@@ -11,7 +13,7 @@ const validateCustomerInput = require('../../validation/customer');
 // @url    GET /api/customers
 // @desc   Get all customers
 // @type   Public
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
   Customer.find()
     .then(customers => {
       if (!customers || isEmpty(customers)) {
@@ -19,30 +21,32 @@ router.get('/', (req, res) => {
       }
       res.json(customers);
     })
-    .catch(err => res.status(500).json('Внутренняя ошибка сервера!'));
+    .catch(err => next(err));
 });
 
 // @url    GET /api/customers/:id
 // @desc   Get customer by id
 // @type   Public
-router.get('/:id', (req, res) => {
+router.get('/:id', (req, res, next) => {
   const id = req.params.id;
 
   if (!isObjectId(id)) {
     return res.status(400).json({ message: 'Неверный id заказчика' });
   }
-  Customer.findById(id).then(customer => {
-    if (!customer) {
-      return res.status(404).json({ message: 'Заказчик не найден' });
-    }
-    res.json(customer);
-  });
+  Customer.findById(id)
+    .then(customer => {
+      if (!customer) {
+        return res.status(404).json({ message: 'Заказчик не найден' });
+      }
+      res.json(customer);
+    })
+    .catch(err => next(err));
 });
 
 // @url    POST /api/customers
 // @desc   Create customer
 // @type   Private
-router.post('/', (req, res) => {
+router.post('/', auth, (req, res, next) => {
   const { errors, isValid } = validateCustomerInput(req.body);
 
   if (!isValid) {
@@ -61,16 +65,13 @@ router.post('/', (req, res) => {
   customer
     .save()
     .then(customer => res.json(customer))
-    .catch(err => {
-      console.error("Error while saving: ", err);
-      res.status(500).json({ message: 'Ошибка при сохранении данных' })
-    });
+    .catch(err => next(err));
 });
 
 // @url    PUT /api/customers/:id
 // @desc   Update customer
 // @type   Private
-router.put('/:id', (req, res) => {
+router.put('/:id', auth, (req, res, next) => {
   if (!isObjectId(req.params.id)) {
     return res.status(400).json({ message: 'Неверный id заказчика' });
   }
@@ -93,27 +94,21 @@ router.put('/:id', (req, res) => {
     customer
       .save()
       .then(customer => res.json(customer))
-      .catch(err => {
-        console.error("Error while saving: ", err);      
-        res.status(500).json({ message: 'Ошибка при сохранении данных' })
-      });
+      .catch(err => next(err));
   });
 });
 
 // @url    DELETE /api/customers/:id
 // @desc   Delete customer
 // @type   Private
-router.delete('/:id', (req, res) => {
+router.delete('/:id', [auth, admin], (req, res, next) => {
   if (!isObjectId(req.params.id)) {
     return res.status(400).json({ message: 'Неверный id заказчика' });
   }
 
   Customer.findByIdAndRemove({ _id: req.params.id })
     .then(customer => res.json(customer))
-    .catch(err => {
-      console.error("Error while deleting: ", err);
-      res.status(500).json({ message: 'Не удалось удалить заказчика' })
-    });
+    .catch(err => next(err));
 });
 
 module.exports = router;

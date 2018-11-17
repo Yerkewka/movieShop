@@ -1,3 +1,4 @@
 {
-  "name": "Movie shopping application"
+  "name": "Movie shopping application",
+  "jwtPrivateKey": ""
 }
